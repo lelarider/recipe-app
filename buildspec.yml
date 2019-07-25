@@ -1,0 +1,18 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      # python: 3.7
+      nodejs: 10
+
+    # commands:
+    #   - pip install --upgrade pip
+    #   - pip install pipenv --user
+  pre_build:
+    commands:
+      - npm install
+      # - pipenv install --system --deploy --ignore-pipfile
+  build:
+    commands:
+      - npx serverless deploy --stage ${SERVERLESS_STAGE} --region ${SERVERLESS_REGION}
