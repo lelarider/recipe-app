@@ -1,0 +1,49 @@
+service: recipe-app
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  region: us-east-1
+  environment:
+    STAGE: ${self:custom.derived.stage}
+    PORT: ${self:custom.derived.port}
+    NODE_ENV: ${self:custom.derived.node_env}
+    LOG_LEVEL: ${self:custom.derived.logLevel}
+
+package:
+  include:
+    - ./dist/**
+    - ./handler/**
+    - env.yml
+  exclude:
+    - ./**
+    - '!node_modules/**'
+
+functions:
+  app:
+    handler: handler.app
+    events:
+      - http:
+          path: /
+          method: ANY
+          private: false
+      - http:
+          path: /{proxy+}
+          method: ANY
+          private: true
+
+plugins:
+  - serverless-offline
+
+custom:
+  defaults:
+    stage: local
+    node_env: local
+    awsRegion: us-east-1
+    logLevel: WARN
+    port: 8080
+  derived:
+    stage: ${opt:stage, env:SLS_STAGE, self:custom.defaults.stage}
+    port: ${opt:port, env:PORT, file(./env.yml):${self:custom.derived.stage}.PORT, self:custom.defaults.port}
+    node_env: ${file(./env.yml):${self:custom.derived.stage}.node_env, self:custom.defaults.node_env}
+    logLevel: ${opt:logLevel, env:LOG_LEVEL, file(./env.yml):${self:custom.derived.stage}.LOG_LEVEL, self:custom.defaults.logLevel}
